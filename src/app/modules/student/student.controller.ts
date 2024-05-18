@@ -1,8 +1,16 @@
 import { Request, Response } from 'express';
 import { StudentServices } from './student.service';
+import Joi from 'joi';
 
 const createStudent = async (req: Request, res: Response) => {
   try {
+    const JoiValidationSchema = Joi.object({
+      name: {
+        firstName: Joi.string().max(20).required(),
+      },
+      gender: Joi.string().required().valid(['male', 'female', 'other']),
+    });
+
     const { student: studentData } = req.body;
     const result = await StudentServices.createStudentIntoDB(studentData);
     res.status(200).json({
@@ -11,7 +19,11 @@ const createStudent = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error) {
-    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: 'something went wrong',
+      data: error,
+    });
   }
 };
 

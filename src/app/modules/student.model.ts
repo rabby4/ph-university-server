@@ -1,4 +1,6 @@
 import { Schema, model } from 'mongoose';
+import validator from 'validator';
+
 import {
   Guardian,
   LocalGuardian,
@@ -7,13 +9,37 @@ import {
 } from './student/student.interface';
 
 const userNameSchema = new Schema<UserName>({
-  firstName: { type: String, required: [true, 'First Name is required'] },
-  middleName: { type: String },
-  lastName: { type: String, required: [true, 'Last Name is required'] },
+  firstName: {
+    type: String,
+    required: [true, 'First Name is required'],
+    maxlength: [20, 'First name is not more then 20 characters'],
+    trim: true,
+    validate: {
+      validator: function (value: string) {
+        const firstNameStr = value.charAt(0).toUpperCase() + value.slice(1);
+        return firstNameStr === value;
+      },
+      message: '{VALUE} is not capitalize formate',
+    },
+  },
+  middleName: { type: String, trim: true },
+  lastName: {
+    type: String,
+    required: [true, 'Last Name is required'],
+    trim: true,
+    validate: {
+      validator: (value: string) => validator.isAlpha(value),
+      message: '{VALUE} is not a valid name',
+    },
+  },
 });
 
 const guardianSchema = new Schema<Guardian>({
-  fatherName: { type: String, required: [true, 'Father Name is required'] },
+  fatherName: {
+    type: String,
+    required: [true, 'Father Name is required'],
+    trim: true,
+  },
   fatherOccupation: {
     type: String,
     required: [true, 'Father occupation is required'],
@@ -58,13 +84,21 @@ const studentSchema = new Schema<Student>({
   gender: {
     type: String,
     enum: {
-      values: ['male', 'female'],
+      values: ['male', 'female', 'other'],
       message: '{VALUES} is not valid',
     },
     required: true,
   },
   dateOfBirth: { type: String },
-  email: { type: String, required: [true, 'Email is required'], unique: true },
+  email: {
+    type: String,
+    required: [true, 'Email is required'],
+    unique: true,
+    validate: {
+      validator: (value: string) => validator.isEmail(value),
+      message: '{VALUE} is not a valid email',
+    },
+  },
   contactNo: { type: String, required: [true, 'Contact number is required'] },
   emergencyContactNo: {
     type: String,
