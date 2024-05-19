@@ -1,18 +1,25 @@
 import { Request, Response } from 'express';
 import { StudentServices } from './student.service';
-import Joi from 'joi';
+// import { z } from 'zod';
+import studentValidationSchema from './student.validation';
+// import studentValidationSchema from './student.validation';
 
 const createStudent = async (req: Request, res: Response) => {
   try {
-    const JoiValidationSchema = Joi.object({
-      name: {
-        firstName: Joi.string().max(20).required(),
-      },
-      gender: Joi.string().required().valid(['male', 'female', 'other']),
-    });
-
     const { student: studentData } = req.body;
-    const result = await StudentServices.createStudentIntoDB(studentData);
+    // const { error, value } = studentValidationSchema.validate(studentData);
+
+    // if (error) {
+    //   res.status(500).json({
+    //     success: false,
+    //     message: 'something went wrong',
+    //     error: error.details,
+    //   });
+    // }
+
+    const zodParseData = studentValidationSchema.parse(studentData);
+
+    const result = await StudentServices.createStudentIntoDB(zodParseData);
     res.status(200).json({
       success: true,
       message: 'student create successfully',
@@ -30,6 +37,7 @@ const createStudent = async (req: Request, res: Response) => {
 const getAllStudents = async (req: Request, res: Response) => {
   try {
     const result = await StudentServices.getAllStudentsFromDB();
+
     res.status(200).json({
       success: true,
       message: 'student are retrieved successfully',
