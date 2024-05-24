@@ -22,6 +22,7 @@ const userSchema = new Schema<TUser>(
     status: {
       type: String,
       enum: ['in-progress', 'blocked'],
+      default: 'in-progress',
     },
     isDelete: {
       type: Boolean,
@@ -33,4 +34,4 @@ const userSchema = new Schema<TUser>(
   },
 );
 
-export const user = model<TUser>('users', userSchema);
+export const User = model<TUser>('users', userSchema);
