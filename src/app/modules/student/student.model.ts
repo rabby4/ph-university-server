@@ -7,8 +7,6 @@ import {
   StudentModel,
   TUserName,
 } from '../student/student.interface';
-import bcrypt from 'bcrypt';
-import config from '../../config';
 
 const userNameSchema = new Schema<TUserName>({
   firstName: {
@@ -86,11 +84,7 @@ const studentSchema = new Schema<TStudent, StudentModel>(
       unique: true,
       ref: 'User',
     },
-    password: {
-      type: String,
-      required: [true, 'Password is required'],
-      maxlength: [20, 'Password can not be more then 20 character'],
-    },
+
     name: {
       type: userNameSchema,
       required: [true, 'Full Name is required'],
@@ -154,24 +148,6 @@ studentSchema.virtual('fullName').get(function () {
   return `${this.name.firstName} ${this.name.middleName} ${this.name.lastName}`;
 });
 
-// pre save middleware/hook: will work on create(), save()
-studentSchema.pre('save', async function (next) {
-  // console.log(this, 'pre hook: we will save the data');
-  // eslint-disable-next-line @typescript-eslint/no-this-alias
-  const user = this;
-  // hashing password and save into database
-  user.password = await bcrypt.hash(
-    user.password as string,
-    Number(config.bcrypt_salt_round),
-  );
-  next();
-});
-// post middleware/hook
-studentSchema.post('save', function (doc, next) {
-  doc.password = '';
-  next();
-});
-
 // Query middleware
 studentSchema.pre('find', function (next) {
   this.find({ isDeleted: { $ne: true } });
@@ -182,7 +158,6 @@ studentSchema.pre('findOne', function (next) {
   next();
 });
 studentSchema.pre('aggregate', function (next) {
-  // this.find({ isDeleted: { $ne: true } });
   this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
   next();
 });
@@ -192,11 +167,5 @@ studentSchema.statics.isUserExists = async function (id: string) {
   const existingUser = await Student.findOne({ id });
   return existingUser;
 };
-
-// creating a custom instance method
-// studentSchema.methods.isUserExists = async function (id: string) {
-//   const existingUser = await Student.findOne({ id });
-//   return existingUser;
-// };
 
 export const Student = model<TStudent, StudentModel>('Student', studentSchema);
