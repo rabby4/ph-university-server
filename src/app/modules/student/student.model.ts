@@ -6,9 +6,9 @@ import {
   TStudent,
   StudentModel,
   TUserName,
-} from './student/student.interface';
+} from '../student/student.interface';
 import bcrypt from 'bcrypt';
-import config from '../config';
+import config from '../../config';
 
 const userNameSchema = new Schema<TUserName>({
   firstName: {
@@ -160,7 +160,7 @@ studentSchema.pre('save', async function (next) {
   const user = this;
   // hashing password and save into database
   user.password = await bcrypt.hash(
-    user.password,
+    user.password as string,
     Number(config.bcrypt_salt_round),
   );
   next();
