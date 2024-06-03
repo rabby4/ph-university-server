@@ -179,8 +179,8 @@ studentSchema.pre('aggregate', function (next) {
 //   const id = this.getQuery();
 //   console.log(id);
 //
-//   const isStudentExists = await Student.findOne({ id });
-//   const isUserExists = await User.findOne({ id });
+//   const isStudentExists = await Student.findOne({ id: this.id });
+//   const isUserExists = await User.findOne({ id: this.id });
 //   console.log(isStudentExists);
 //
 //   if (!isStudentExists && !isUserExists) {
