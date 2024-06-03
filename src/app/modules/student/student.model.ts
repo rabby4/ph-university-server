@@ -7,6 +7,9 @@ import {
   StudentModel,
   TUserName,
 } from '../student/student.interface';
+// import AppError from '../../error/appError';
+// import httpStatus from 'http-status';
+// import { User } from '../user/user.model';
 
 const userNameSchema = new Schema<TUserName>({
   firstName: {
@@ -161,14 +164,30 @@ studentSchema.pre('find', function (next) {
   this.find({ isDeleted: { $ne: true } });
   next();
 });
+
 studentSchema.pre('findOne', function (next) {
   this.find({ isDeleted: { $ne: true } });
   next();
 });
+
 studentSchema.pre('aggregate', function (next) {
   this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
   next();
 });
+
+// studentSchema.pre('findOneAndUpdate', async function (next) {
+//   const id = this.getQuery();
+//   console.log(id);
+//
+//   const isStudentExists = await Student.findOne({ id });
+//   const isUserExists = await User.findOne({ id });
+//   console.log(isStudentExists);
+//
+//   if (!isStudentExists && !isUserExists) {
+//     throw new AppError(httpStatus.BAD_REQUEST, 'Student does not exists');
+//   }
+//   next();
+// });
 
 // creating a custom static method
 studentSchema.statics.isUserExists = async function (id: string) {
