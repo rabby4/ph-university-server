@@ -11,7 +11,7 @@ router.get('/', FacultyController.getAllFaculties);
 router.get('/:id', FacultyController.getSingleFaculty);
 router.patch(
   '/:id',
-  validateRequest(facultyValidations.createFacultyValidationSchema),
+  validateRequest(facultyValidations.updateFacultyValidationSchema),
   FacultyController.updateFaculty,
 );
 router.delete('/:id', FacultyController.deleteFaculty);
