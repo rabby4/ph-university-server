@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import httpStatus from 'http-status';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendRespons';
@@ -10,11 +11,27 @@ const createStudent = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'student create successfully',
+    message: 'Student create successfully',
+    data: result,
+  });
+});
+
+const createFaculty = catchAsync(async (req, res) => {
+  const { password, faculty: facultyData } = req.body;
+
+  const result: any = await UserService.createStudentIntoDB(
+    password,
+    facultyData,
+  );
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Faculty create successfully',
     data: result,
   });
 });
 
 export const UserController = {
   createStudent,
+  createFaculty,
 };

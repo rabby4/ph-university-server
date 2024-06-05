@@ -65,7 +65,17 @@ const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
   //   const fieldQuery = await limitQuery.select(field);
   // return fieldQuery;
 
-  const studentsQuery = new QueryBuilder(Student.find(), query)
+  const studentsQuery = new QueryBuilder(
+    Student.find()
+      .populate('admissionSemester')
+      .populate({
+        path: 'academicDepartment',
+        populate: {
+          path: 'academicFaculty',
+        },
+      }),
+    query,
+  )
     .search(studentSearchableField)
     .filter()
     .sort()
@@ -77,7 +87,7 @@ const getAllStudentsFromDB = async (query: Record<string, unknown>) => {
 };
 
 const getSingleStudentFromDB = async (id: string) => {
-  const result = await Student.findOne({ id })
+  const result = await Student.findById(id)
     .populate('admissionSemester')
     .populate({
       path: 'academicDepartment',
@@ -113,7 +123,7 @@ const updateStudentIntoDB = async (id: string, payload: Partial<TStudent>) => {
     }
   }
 
-  const result = await Student.findOneAndUpdate({ id }, modifiedStudentData, {
+  const result = await Student.findByIdAndUpdate(id, modifiedStudentData, {
     new: true,
     runValidators: true,
   });
@@ -127,8 +137,8 @@ const deleteStudentFromDB = async (id: string) => {
   try {
     session.startTransaction();
 
-    const deletedStudent = await Student.findOneAndUpdate(
-      { id },
+    const deletedStudent = await Student.findByIdAndUpdate(
+      id,
       { isDeleted: true },
       { new: true, session },
     );
@@ -137,8 +147,11 @@ const deleteStudentFromDB = async (id: string) => {
       throw new AppError(httpStatus.BAD_REQUEST, 'Failed to delete Student');
     }
 
-    const deleteUser = await User.findOneAndUpdate(
-      { id },
+    // get user _id from deletedStudent
+    const userId = deletedStudent.user;
+
+    const deleteUser = await User.findByIdAndUpdate(
+      userId,
       { isDelete: true },
       { new: true, session },
     );
