@@ -1,12 +1,12 @@
 import { Schema, model } from 'mongoose';
+import { AdminModel, TAdmin, TUserName } from './admin.interface';
 import validator from 'validator';
-import { FacultyModel, TFaculty, TUserName } from './faculty.interface';
 
 const userNameSchema = new Schema<TUserName>({
   firstName: {
     type: String,
     required: [true, 'First Name is required'],
-    maxlength: [20, 'First name is not more then 20 characters'],
+    maxlength: [20, 'First Name is not more then 20 characters'],
     trim: true,
   },
   middleName: { type: String, trim: true },
@@ -18,7 +18,7 @@ const userNameSchema = new Schema<TUserName>({
   },
 });
 
-const facultySchema = new Schema<TFaculty, FacultyModel>(
+const adminSchema = new Schema<TAdmin, AdminModel>(
   {
     id: { type: String, required: [true, 'Id is required'], unique: true },
     user: {
@@ -58,26 +58,20 @@ const facultySchema = new Schema<TFaculty, FacultyModel>(
       type: String,
       required: [true, 'Emergency contact number is required'],
     },
-
     bloodGroup: {
       type: String,
       enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
     },
     presentAddress: {
       type: String,
-      required: [true, 'Present address is required'],
+      required: [true, 'Present Address is required'],
     },
     permanentAddress: {
       type: String,
-      required: [true, 'Permanent address is required'],
+      required: [true, 'Permanent Address is required'],
     },
-
     profileImg: { type: String },
-    isDeleted: { type: Boolean, default: false },
-    academicDepartment: {
-      type: Schema.Types.ObjectId,
-      ref: 'academicDepartment',
-    },
+    isDelete: { type: Boolean, default: false },
   },
   {
     toJSON: {
@@ -87,30 +81,30 @@ const facultySchema = new Schema<TFaculty, FacultyModel>(
 );
 
 // virtual
-facultySchema.virtual('fullName').get(function () {
+adminSchema.virtual('fullName').get(function () {
   return `${this?.name?.firstName} ${this?.name?.middleName} ${this?.name?.lastName}`;
 });
 
 // Query middleware
-facultySchema.pre('find', function (next) {
-  this.find({ isDeleted: { $ne: true } });
+adminSchema.pre('find', function (next) {
+  this.find({ isDelete: { $ne: true } });
   next();
 });
 
-facultySchema.pre('findOne', function (next) {
-  this.find({ isDeleted: { $ne: true } });
+adminSchema.pre('findOne', function (next) {
+  this.find({ isDelete: { $ne: true } });
   next();
 });
 
-facultySchema.pre('aggregate', function (next) {
+adminSchema.pre('aggregate', function (next) {
   this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
   next();
 });
 
 // creating a custom static method
-facultySchema.statics.isUserExists = async function (id: string) {
-  const existingUser = await Faculty.findOne({ id });
+adminSchema.statics.isUserExists = async function (id: string) {
+  const existingUser = await Admin.findOne({ id });
   return existingUser;
 };
 
-export const Faculty = model<TFaculty, FacultyModel>('Faculty', facultySchema);
+export const Admin = model<TAdmin, AdminModel>('Admin', adminSchema);

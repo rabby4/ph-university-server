@@ -6,11 +6,17 @@ import { TStudent } from '../student/student.interface';
 import { Student } from '../student/student.model';
 import { TUser } from './user.interface';
 import { User } from './user.model';
-import { generateFacultyId, generateStudentId } from './user.utils';
+import {
+  generateAdminId,
+  generateFacultyId,
+  generateStudentId,
+} from './user.utils';
 import mongoose from 'mongoose';
 import { TFaculty } from '../faculty/faculty.interface';
 import { AcademicDepartment } from '../academicDepartment/academicDepartment.model';
 import { Faculty } from '../faculty/faculty.model';
+import { TAdmin } from '../admin/admin.interface';
+import { Admin } from '../admin/admin.model';
 
 const createStudentIntoDB = async (password: string, payload: TStudent) => {
   // create a user object
@@ -132,7 +138,56 @@ const createFacultyIntoDB = async (password: string, payload: TFaculty) => {
   }
 };
 
+const createAdminIntoDB = async (password: string, payload: TAdmin) => {
+  // added user data
+  const userData: Partial<TUser> = {};
+
+  // set user password
+  userData.password = password || (config.default_pass as string);
+
+  // set user role
+  userData.role = 'admin';
+
+  // create session
+  const session = await mongoose.startSession();
+
+  try {
+    // start transaction
+    session.startTransaction();
+
+    // set user id
+    userData.id = await generateAdminId();
+
+    // create user
+    const newUser = await User.create([userData], { session });
+
+    // set id and user ref id
+    payload.id = newUser[0].id;
+    payload.user = newUser[0]._id;
+
+    // create new Admin
+    const newAdmin = await Admin.create([payload], { session });
+
+    if (!newAdmin) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        'Failed to create new Faculty!',
+      );
+    }
+
+    await session.commitTransaction();
+    await session.endSession();
+
+    return newAdmin;
+  } catch (error) {
+    await session.abortTransaction();
+    await session.endSession();
+    throw new AppError(httpStatus.BAD_REQUEST, 'Filed to create Admin');
+  }
+};
+
 export const UserService = {
   createStudentIntoDB,
   createFacultyIntoDB,
+  createAdminIntoDB,
 };
