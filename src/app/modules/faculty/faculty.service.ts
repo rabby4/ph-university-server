@@ -11,9 +11,6 @@ const getAllFacultiesFromDB = async (query: Record<string, unknown>) => {
   const facultiesQuery = new QueryBuilder(
     Faculty.find().populate({
       path: 'academicDepartment',
-      populate: {
-        path: 'academicFaculty',
-      },
     }),
     query,
   )
