@@ -6,7 +6,7 @@ const preRequisiteCoursesSchema = new Schema<TPreRequisiteCourses>({
     type: Schema.Types.ObjectId,
     ref: 'course',
   },
-  isDelete: {
+  isDeleted: {
     type: Boolean,
     default: false,
   },
@@ -35,6 +35,10 @@ const courseSchema = new Schema<TCourse>({
     required: true,
   },
   preRequisiteCourses: [preRequisiteCoursesSchema],
+  isDeleted: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 export const Course = model<TCourse>('course', courseSchema);
