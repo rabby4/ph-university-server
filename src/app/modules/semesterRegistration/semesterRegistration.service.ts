@@ -4,6 +4,7 @@ import { AcademicSemester } from '../academicSemester/academicSemester.model';
 import { TSemesterRegistration } from './semesterRegistration.interface';
 import { SemesterRegistration } from './semesterRegistration.model';
 import QueryBuilder from '../../builder/QueryBuilder';
+import { RegistrationStatus } from './semesterRegistration.constant';
 
 const createSemesterRegistrationIntoDB = async (
   payload: TSemesterRegistration,
@@ -14,7 +15,10 @@ const createSemesterRegistrationIntoDB = async (
 
   const isThereAnyUpcomingOrOngoingSemester =
     await SemesterRegistration.findOne({
-      $or: [{ status: 'UPCOMING' }, { status: 'ONGOING' }],
+      $or: [
+        { status: RegistrationStatus.UPCOMING },
+        { status: RegistrationStatus.ONGOING },
+      ],
     });
 
   if (isThereAnyUpcomingOrOngoingSemester) {
@@ -48,6 +52,7 @@ const createSemesterRegistrationIntoDB = async (
   const result = await SemesterRegistration.create(payload);
   return result;
 };
+
 const getAllSemesterRegistrationFromDB = async (
   query: Record<string, unknown>,
 ) => {
@@ -62,6 +67,7 @@ const getAllSemesterRegistrationFromDB = async (
   const result = await semesterRegistrationQuery.modelQuery;
   return result;
 };
+
 const getSingleSemesterRegistrationFromDB = async (id: string) => {
   const result = await SemesterRegistration.findById(id);
   return result;
@@ -82,7 +88,7 @@ const updateSemesterRegistrationIntoDB = async (
   const currentSemesterStatus = isSemesterRegistrationExists?.status;
   const requestedStatus = payload?.status;
 
-  if (currentSemesterStatus === 'ENDED') {
+  if (currentSemesterStatus === RegistrationStatus.ENDED) {
     throw new AppError(
       httpStatus.BAD_REQUEST,
       `This semester is already ${currentSemesterStatus}`,
@@ -90,13 +96,19 @@ const updateSemesterRegistrationIntoDB = async (
   }
 
   // UPCOMING --> ONGOING --> ENDED
-  if (currentSemesterStatus === 'UPCOMING' && requestedStatus === 'ENDED') {
+  if (
+    currentSemesterStatus === RegistrationStatus.UPCOMING &&
+    requestedStatus === RegistrationStatus.ENDED
+  ) {
     throw new AppError(
       httpStatus.BAD_REQUEST,
       `You can not directly change status ${currentSemesterStatus} to ${requestedStatus}`,
     );
   }
-  if (currentSemesterStatus === 'ONGOING' && requestedStatus === 'UPCOMING') {
+  if (
+    currentSemesterStatus === RegistrationStatus.ONGOING &&
+    requestedStatus === RegistrationStatus.UPCOMING
+  ) {
     throw new AppError(
       httpStatus.BAD_REQUEST,
       `You can not directly change status ${currentSemesterStatus} to ${requestedStatus}`,
