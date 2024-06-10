@@ -2,9 +2,11 @@ import httpStatus from 'http-status';
 import AppError from '../../error/appError';
 import { User } from '../user/user.model';
 import { TLoginUser } from './auth.interface';
-import jwt, { JwtPayload } from 'jsonwebtoken';
+import { JwtPayload } from 'jsonwebtoken';
 import config from '../../config';
 import bcrypt from 'bcrypt';
+import { createToken } from './auth.utils';
+import jwt from 'jsonwebtoken';
 
 const loginUser = async (payload: TLoginUser) => {
   // checking if the user is exists
@@ -37,12 +39,20 @@ const loginUser = async (payload: TLoginUser) => {
     role: user?.role,
   };
 
-  const accessToken = jwt.sign(jwtPayload, config.jwt_access_token as string, {
-    expiresIn: '1d',
-  });
+  const accessToken = createToken(
+    jwtPayload,
+    config.jwt_access_token as string,
+    config.jwt_access_expires_in as string,
+  );
+  const refreshToken = createToken(
+    jwtPayload,
+    config.jwt_refresh_token as string,
+    config.jwt_refresh_expires_in as string,
+  );
 
   return {
     accessToken,
+    refreshToken,
     needPasswordChange: user.needChangePassword,
   };
 };
@@ -95,7 +105,58 @@ const changePassword = async (
   return null;
 };
 
+const refreshToken = async (token: string) => {
+  // check if the token is valid or not
+  const decoded = jwt.verify(
+    token,
+    config.jwt_refresh_token as string,
+  ) as JwtPayload;
+
+  const { userId, iat } = decoded;
+
+  // checking if the user is exists
+  const user = await User.isUserExistsByCustomId(userId);
+
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, 'The user not found!');
+  }
+
+  // checking if the user is deleted
+  const isDeleted = user?.isDelete;
+  if (isDeleted) {
+    throw new AppError(httpStatus.FORBIDDEN, 'This user is deleted!');
+  }
+
+  //checking if the user is deleted
+  const userStatus = user?.status;
+  if (userStatus === 'blocked') {
+    throw new AppError(httpStatus.FORBIDDEN, 'This user is blocked!');
+  }
+
+  if (
+    user.passwordChangeAt &&
+    User.isJWTIssuedBeforePasswordChange(user.passwordChangeAt, iat as number)
+  ) {
+    throw new AppError(httpStatus.UNAUTHORIZED, 'You are not authorized!');
+  }
+
+  // create access token and send to client
+  const jwtPayload = {
+    userId: user?.id,
+    role: user?.role,
+  };
+
+  const accessToken = createToken(
+    jwtPayload,
+    config.jwt_access_token as string,
+    config.jwt_access_expires_in as string,
+  );
+
+  return { accessToken };
+};
+
 export const AuthServices = {
   loginUser,
   changePassword,
+  refreshToken,
 };
