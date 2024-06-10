@@ -98,7 +98,7 @@ const createFacultyIntoDB = async (password: string, payload: TFaculty) => {
     payload.academicDepartment,
   );
   if (!academicDepartment) {
-    throw new AppError(httpStatus.NOT_FOUND, 'Admission department not found');
+    throw new AppError(httpStatus.NOT_FOUND, 'Academic department not found');
   }
 
   // create session
