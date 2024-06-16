@@ -10,6 +10,7 @@ import handleValidatorError from '../error/handleValidatorError';
 import handleCastError from '../error/handleCastError';
 import handleDuplicateError from '../error/handleDuplicateError';
 import AppError from '../error/appError';
+
 const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
   let statuscode = 500;
   let message = 'something went wrong';
