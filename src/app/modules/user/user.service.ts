@@ -63,10 +63,7 @@ const createStudentIntoDB = async (
     const path = file?.path;
     const imageName = `${userData.id}${payload?.name?.firstName}`;
     // send Image to cloudinary
-    const { secure_url } = (await sendImageToCloudinary(
-      imageName,
-      path,
-    )) as any;
+    const { secure_url }: any = await sendImageToCloudinary(imageName, path);
 
     // create a user (transaction-1)
     const newUser = await User.create([userData], { session });
@@ -83,7 +80,7 @@ const createStudentIntoDB = async (
     // create student (transaction-2)
     const newStudent = await Student.create([payload], { session });
 
-    if (!newStudent) {
+    if (!newStudent.length) {
       throw new AppError(
         httpStatus.BAD_REQUEST,
         'Failed to create new Student!',
@@ -94,10 +91,10 @@ const createStudentIntoDB = async (
     await session.endSession();
 
     return newStudent;
-  } catch (error) {
+  } catch (error: any) {
     await session.abortTransaction();
     await session.endSession();
-    throw new AppError(httpStatus.BAD_REQUEST, 'Filed to create Student');
+    throw new Error(error);
   }
 };
 
