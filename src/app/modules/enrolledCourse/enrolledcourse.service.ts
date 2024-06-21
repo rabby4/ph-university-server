@@ -200,7 +200,6 @@ const updateEnrolledCourseMarksIntoDB = async (
       Math.ceil(finalTerm * 0.5);
 
     const result = calculateGradeAndPoints(totalMarks);
-    console.log(result, totalMarks);
 
     modifiedData.grade = result.grade;
     modifiedData.gradePoints = result.gradePoints;
