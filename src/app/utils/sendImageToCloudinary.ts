@@ -10,12 +10,15 @@ cloudinary.config({
   api_secret: config.cloudinary_api_secret,
 });
 
-export const sendImageToCloudinary = (imageName: string, path: string) => {
+export const sendImageToCloudinary = (
+  imageName: string,
+  path: string,
+): Promise<Record<string, unknown>> => {
   return new Promise((resolve, reject) => {
     cloudinary.uploader.upload(
       path,
       {
-        public_id: imageName,
+        public_id: imageName.trim(),
       },
       function (error, result) {
         if (error) {
@@ -54,7 +57,7 @@ export const sendImageToCloudinary = (imageName: string, path: string) => {
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, process.cwd() + '/uploads/');
+    cb(null, process.cwd() + '/uploads');
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
