@@ -247,10 +247,6 @@ const createAdminIntoDB = async (
 };
 
 const getMe = async (userId: string, role: string) => {
-  //   const decoded = verifyToken(token, config.jwt_access_token as string);
-  //
-  //   const { userId, role } = decoded;
-
   let result = null;
 
   if (role === 'student') {
