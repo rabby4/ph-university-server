@@ -21,10 +21,10 @@ const getAllCourseFromDB = async (query: Record<string, unknown>) => {
     .sort()
     .paginate()
     .fields();
-  const result = await courseQuery.modelQuery;
+  const data = await courseQuery.modelQuery;
   const meta = await courseQuery.countTotal();
 
-  return { meta, result };
+  return { meta, data };
 };
 
 const getSingleCourseFromDB = async (id: string) => {
